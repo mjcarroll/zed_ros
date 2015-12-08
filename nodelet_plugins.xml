@@ -1,0 +1,5 @@
+<library path="lib/libzed_ros">
+  <class name="zed_ros/driver" type="zed_ros::CameraDriverNodelet" base_class_type="nodelet::Nodelet">
+    <description>ZED Stereo Driver</description>
+  </class>
+</library>

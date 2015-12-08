@@ -1,0 +1,53 @@
+<launch>
+  <arg name="manager" default="stereo_camera_nodelet_manager"/>
+
+  <node pkg="nodelet" type="nodelet" name="$(arg manager)" args="manager" output="screen"/>
+
+  <node pkg="nodelet" type="nodelet" name="camera_driver"
+    args="load zed_ros/driver $(arg manager)">
+  </node>
+
+  <node pkg="nodelet" type="nodelet" name="debayer_l"
+        args="load image_proc/debayer $(arg manager)" >
+    <remap from="camera_info" to="left/camera_info"/>
+    <remap from="image_color" to="left/image_color"/>
+    <remap from="image_mono" to="left/image_mono"/>
+    <remap from="image_raw" to="left/image_raw"/>
+  </node>
+
+  <node pkg="nodelet" type="nodelet" name="rectify_mono_l"
+        args="load image_proc/rectify $(arg manager)" >
+    <remap from="camera_info" to="left/camera_info"/>
+    <remap from="image_mono" to="left/image_mono"/>
+    <remap from="image_rect" to="left/image_rect"/>
+  </node>
+
+  <node pkg="nodelet" type="nodelet" name="rectify_mono_lc"
+        args="load image_proc/rectify $(arg manager)" >
+    <remap from="camera_info" to="left/camera_info"/>
+    <remap from="image_mono" to="left/image_color"/>
+    <remap from="image_rect" to="left/image_rect_color"/>
+  </node>
+
+  <node pkg="nodelet" type="nodelet" name="debayer_r"
+        args="load image_proc/debayer $(arg manager)" >
+    <remap from="camera_info" to="right/camera_info"/>
+    <remap from="image_color" to="right/image_color"/>
+    <remap from="image_mono" to="right/image_mono"/>
+    <remap from="image_raw" to="right/image_raw"/>
+  </node>
+
+  <node pkg="nodelet" type="nodelet" name="rectify_mono_r"
+        args="load image_proc/rectify $(arg manager)" >
+    <remap from="camera_info" to="right/camera_info"/>
+    <remap from="image_mono" to="right/image_mono"/>
+    <remap from="image_rect" to="right/image_rect"/>
+  </node>
+
+  <node pkg="nodelet" type="nodelet" name="rectify_mono_rc"
+        args="load image_proc/rectify $(arg manager)" >
+    <remap from="camera_info" to="right/camera_info"/>
+    <remap from="image_mono" to="right/image_color"/>
+    <remap from="image_rect" to="right/image_rect_color"/>
+  </node>
+</launch>
