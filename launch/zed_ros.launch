@@ -1,10 +1,78 @@
 <launch>
-  <arg name="manager" default="stereo_camera_nodelet_manager"/>
+  <arg name="manager"      default="stereo_camera_nodelet_manager"/>
+  <arg name="video_device" default="/dev/video0"/>
+  <!-- below are valid configuration for the camera, choose one -->
+  <arg name="image_width"  default="1280"/>
+  <arg name="image_height" default="720"/>
+  <arg name="framerate"    default="30"/>
+  <!--
+      <arg name="image_width"  default="2208"/>
+      <arg name="image_height" default="1242"/>
+      <arg name="framerate"    default="15"/>
+  -->
 
+  <!--
+      <arg name="image_width"  default="1920"/>
+      <arg name="image_height" default="1080"/>
+      <arg name="framerate"    default="15"/>
+  -->
+
+  <!--
+      <arg name="image_width"  default="1920"/>
+      <arg name="image_height" default="1080"/>
+      <arg name="framerate"    default="30"/>
+  -->
+
+  <!--
+      <arg name="image_width"  default="1280"/>
+      <arg name="image_height" default="720"/>
+      <arg name="framerate"    default="15"/>
+  -->
+
+  <!--
+      <arg name="image_width"  default="1280"/>
+      <arg name="image_height" default="720"/>
+      <arg name="framerate"    default="30"/>
+  -->
+
+  <!--
+      <arg name="image_width"  default="1280"/>
+      <arg name="image_height" default="720"/>
+      <arg name="framerate"    default="60"/>
+  -->
+
+  <!--
+      <arg name="image_width"  default="640"/>
+      <arg name="image_height" default="480"/>
+      <arg name="framerate"    default="15"/>
+  -->
+
+  <!--
+      <arg name="image_width"  default="640"/>
+      <arg name="image_height" default="480"/>
+      <arg name="framerate"    default="30"/>
+  -->
+
+  <!--
+      <arg name="image_width"  default="640"/>
+      <arg name="image_height" default="480"/>
+      <arg name="framerate"    default="60"/>
+  -->
+
+  <!--
+      <arg name="image_width"  default="640"/>
+      <arg name="image_height" default="480"/>
+      <arg name="framerate"    default="100"/>
+  -->
+  
   <node pkg="nodelet" type="nodelet" name="$(arg manager)" args="manager" output="screen"/>
 
   <node pkg="nodelet" type="nodelet" name="camera_driver"
-    args="load zed_ros/driver $(arg manager)">
+        args="load zed_ros/driver $(arg manager)">
+    <param name="video_device" value="$(arg video_device)"/>
+    <param name="image_width"  value="$(arg image_width)"/>
+    <param name="image_height" value="$(arg image_height)"/>
+    <param name="framerate"    value="$(arg framerate)"/>
   </node>
 
   <node pkg="nodelet" type="nodelet" name="debayer_l"
