@@ -138,4 +138,23 @@
     <remap from="image_mono" to="stereo_down/right/image_color"/>
     <remap from="image_rect" to="stereo_down/right/image_rect_color"/>
   </node>
+
+  <node pkg="nodelet" type="nodelet" name="disparity"
+        args="load stereo_image_proc/disparity $(arg manager)">
+    <remap from="left/image_rect"   to="stereo_down/left/image_rect"/>
+    <remap from="left/camera_info"  to="stereo_down/left/camera_info"/>
+    <remap from="right/image_rect"  to="stereo_down/right/image_rect"/>
+    <remap from="right/camera_info" to="stereo_down/right/camera_info"/>
+    <remap from="/zed_camera/disparity" to="/zed_camera/stereo_down/disparity"/>
+  </node>
+  
+  <!-- PointCloud2 -->
+  <node pkg="nodelet" type="nodelet" name="point_cloud2"
+        args="load stereo_image_proc/point_cloud2 $(arg manager)">
+    <remap from="left/image_rect_color" to="stereo_down/left/image_rect_color"/>
+    <remap from="left/camera_info"  to="stereo_down/left/camera_info"/>
+    <remap from="right/camera_info"  to="stereo_down/right/camera_info"/>
+    <remap from="/zed_camera/disparity" to="/zed_camera/stereo_down/disparity"/>
+  </node>
+  
 </launch>
