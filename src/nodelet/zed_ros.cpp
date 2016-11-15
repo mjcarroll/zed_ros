@@ -18,12 +18,14 @@ namespace zed_ros {
 
 class CameraDriver
 {
+  ros::NodeHandle nh_;
   ros::NodeHandle priv_nh_;
-  ros::NodeHandle camera_nh_;
+  ros::NodeHandle left_nh, right_nh, left_pnh, right_pnh;
 
   std::string camera_name_;
 
-  boost::shared_ptr<image_transport::ImageTransport> it_;
+  boost::shared_ptr<image_transport::ImageTransport> left_it_;
+  boost::shared_ptr<image_transport::ImageTransport> right_it_;
 
   ros::NodeHandle nh_l_;
   image_transport::CameraPublisher image_pub_l_;
@@ -41,11 +43,17 @@ class CameraDriver
   int framerate_;
 
  public:
-  CameraDriver(ros::NodeHandle priv_nh, ros::NodeHandle camera_nh):
+  CameraDriver(ros::NodeHandle nh, ros::NodeHandle priv_nh):
+      nh_(nh),
       priv_nh_(priv_nh),
-      camera_nh_(camera_nh),
       camera_name_("zed"),
-      it_(new image_transport::ImageTransport(camera_nh_)) {}
+      left_nh(nh, "left"),
+      right_nh(nh, "right"),
+      left_pnh(priv_nh_, "left"),
+      right_pnh(priv_nh_, "right"),
+      left_it_(new image_transport::ImageTransport(left_nh)),
+      right_it_(new image_transport::ImageTransport(right_nh)) {
+  }
 
   void setup() {
     priv_nh_.param("video_device", video_device_name_, std::string("/dev/video0"));
@@ -96,15 +104,13 @@ class CameraDriver
       ROS_ERROR("Failed to open video capture");
     }
 
-    nh_l_ = ros::NodeHandle(camera_nh_, "left");
-    cam_info_l_ = boost::shared_ptr<camera_info_manager::CameraInfoManager>(new camera_info_manager::CameraInfoManager(nh_l_));
+    cam_info_l_ = boost::shared_ptr<camera_info_manager::CameraInfoManager>(new camera_info_manager::CameraInfoManager(left_nh));
     cam_info_l_->setCameraName(camera_name_ + "_" + boost::lexical_cast<std::string>(image_width_) + "_left");
-    image_pub_l_ = it_->advertiseCamera("left/image_raw", 1);
+    image_pub_l_ = left_it_->advertiseCamera(left_nh.resolveName("image_raw"), 1);
 
-    nh_r_ = ros::NodeHandle(camera_nh_, "right");
-    cam_info_r_ = boost::shared_ptr<camera_info_manager::CameraInfoManager>(new camera_info_manager::CameraInfoManager(nh_r_));
+    cam_info_r_ = boost::shared_ptr<camera_info_manager::CameraInfoManager>(new camera_info_manager::CameraInfoManager(right_nh));
     cam_info_r_->setCameraName(camera_name_ + "_" + boost::lexical_cast<std::string>(image_width_) + "_right");
-    image_pub_r_ = it_->advertiseCamera("right/image_raw", 1);
+    image_pub_r_ = right_it_->advertiseCamera(right_nh.resolveName("image_raw"), 1);
   }
 
 
@@ -122,18 +128,22 @@ class CameraDriver
     if (frame.rows == 0 && frame.cols == 0)
       return;
 
-    std_msgs::Header header;
-    header.stamp = ros::Time::now();
-    header.frame_id = "zed_optical";
+    std_msgs::Header header_l;
+    header_l.stamp = ros::Time::now();
+    header_l.frame_id = "zed_left_camera_optical_frame";
 
     sensor_msgs::CameraInfoPtr ci_left(new sensor_msgs::CameraInfo(cam_info_l_->getCameraInfo()));
-    ci_left->header = header;
-    sensor_msgs::ImagePtr im_left  = cv_bridge::CvImage(header, "bgr8", frame(cv::Range::all(), cv::Range(0, image_width_))).toImageMsg();
+    ci_left->header = header_l;
+    sensor_msgs::ImagePtr im_left  = cv_bridge::CvImage(header_l, "bgr8", frame(cv::Range::all(), cv::Range(0, image_width_))).toImageMsg();
     image_pub_l_.publish(im_left, ci_left);
 
+    std_msgs::Header header_r;
+    header_r.stamp = ros::Time::now();
+    header_r.frame_id = "zed_left_camera_optical_frame";
+
     sensor_msgs::CameraInfoPtr ci_right(new sensor_msgs::CameraInfo(cam_info_r_->getCameraInfo()));
-    ci_right->header = header;
-    sensor_msgs::ImagePtr im_right = cv_bridge::CvImage(header, "bgr8", frame(cv::Range::all(), cv::Range(image_width_, image_width_*2))).toImageMsg();
+    ci_right->header = header_r;
+    sensor_msgs::ImagePtr im_right = cv_bridge::CvImage(header_r, "bgr8", frame(cv::Range::all(), cv::Range(image_width_, image_width_*2))).toImageMsg();
     image_pub_r_.publish(im_right, ci_right);
   }
 };
@@ -166,9 +176,8 @@ void CameraDriverNodelet::onInit()
 {
   ros::NodeHandle priv_nh(getPrivateNodeHandle());
   ros::NodeHandle nh(getNodeHandle());
-  ros::NodeHandle camera_nh(nh);
 
-  driver_.reset(new zed_ros::CameraDriver(priv_nh, camera_nh));
+  driver_.reset(new zed_ros::CameraDriver(nh, priv_nh));
   driver_->setup();
   running_ = true;
   deviceThread_ = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&CameraDriverNodelet::devicePoll, this)));
