@@ -78,7 +78,7 @@ class CameraDriver
       framerates.insert(100);
     } else {
       ROS_WARN("Invalid image resolution selected %ix%i, defaulting to 1280x720", image_width_, image_height_);
-       image_width_ = 1280; 
+       image_width_ = 1280;
        image_height_ = 720;
     }
 
@@ -139,7 +139,7 @@ class CameraDriver
 
     std_msgs::Header header_r;
     header_r.stamp = ros::Time::now();
-    header_r.frame_id = "zed_left_camera_optical_frame";
+    header_r.frame_id = "zed_right_camera_optical_frame";
 
     sensor_msgs::CameraInfoPtr ci_right(new sensor_msgs::CameraInfo(cam_info_r_->getCameraInfo()));
     ci_right->header = header_r;
