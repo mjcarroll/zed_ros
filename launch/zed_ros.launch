@@ -1,53 +1,160 @@
 <launch>
-  <arg name="manager" default="stereo_camera_nodelet_manager"/>
+  <arg name="manager"      value="stereo_camera_nodelet_manager"/>
+  <arg name="video_device" value="/dev/video1"/>
+  <!-- below are valid configuration for the camera, choose one -->
+  <arg name="image_width"  value="1280"/>
+  <arg name="image_height" value="720"/>
+  <arg name="framerate"    value="30"/>
+  <!--
+      <arg name="image_width"  value="2208"/>
+      <arg name="image_height" value="1242"/>
+      <arg name="framerate"    value="15"/>
+  -->
 
+  <!--
+      <arg name="image_width"  value="1920"/>
+      <arg name="image_height" value="1080"/>
+      <arg name="framerate"    value="15"/>
+  -->
+
+  <!--
+      <arg name="image_width"  value="1920"/>
+      <arg name="image_height" value="1080"/>
+      <arg name="framerate"    value="30"/>
+  -->
+
+  <!--
+      <arg name="image_width"  value="1280"/>
+      <arg name="image_height" value="720"/>
+      <arg name="framerate"    value="15"/>
+  -->
+
+  <!--
+      <arg name="image_width"  value="1280"/>
+      <arg name="image_height" value="720"/>
+      <arg name="framerate"    value="30"/>
+  -->
+
+  <!--
+      <arg name="image_width"  value="1280"/>
+      <arg name="image_height" value="720"/>
+      <arg name="framerate"    value="60"/>
+  -->
+
+  <!--
+      <arg name="image_width"  value="640"/>
+      <arg name="image_height" value="480"/>
+      <arg name="framerate"    value="15"/>
+  -->
+
+  <!--
+      <arg name="image_width"  value="640"/>
+      <arg name="image_height" value="480"/>
+      <arg name="framerate"    value="30"/>
+  -->
+
+  <!--
+      <arg name="image_width"  value="640"/>
+      <arg name="image_height" value="480"/>
+      <arg name="framerate"    value="60"/>
+  -->
+
+  <!--
+      <arg name="image_width"  value="640"/>
+      <arg name="image_height" value="480"/>
+      <arg name="framerate"    value="100"/>
+  -->
+  
   <node pkg="nodelet" type="nodelet" name="$(arg manager)" args="manager" output="screen"/>
 
   <node pkg="nodelet" type="nodelet" name="camera_driver"
-    args="load zed_ros/driver $(arg manager)">
+        args="load zed_ros/driver $(arg manager)">
+    <param name="video_device" value="$(arg video_device)"/>
+    <param name="image_width"  value="$(arg image_width)"/>
+    <param name="image_height" value="$(arg image_height)"/>
+    <param name="framerate"    value="$(arg framerate)"/>
   </node>
 
+
+  
+  <node pkg="nodelet" type="nodelet" name="crop_mono_l"
+        args="load image_proc/crop_decimate $(arg manager)" >
+    <remap from="camera" to="left"/>
+    <remap from="camera_out" to="stereo_down/left"/>
+    <param name="decimation_x" value="2"/>
+    <param name="decimation_y" value="2"/>
+  </node>
+  
   <node pkg="nodelet" type="nodelet" name="debayer_l"
         args="load image_proc/debayer $(arg manager)" >
-    <remap from="camera_info" to="left/camera_info"/>
-    <remap from="image_color" to="left/image_color"/>
-    <remap from="image_mono" to="left/image_mono"/>
-    <remap from="image_raw" to="left/image_raw"/>
+    <remap from="camera_info" to="stereo_down/left/camera_info"/>
+    <remap from="image_color" to="stereo_down/left/image_color"/>
+    <remap from="image_mono" to="stereo_down/left/image_mono"/>
+    <remap from="image_raw" to="stereo_down/left/image_raw"/>
   </node>
-
+  
   <node pkg="nodelet" type="nodelet" name="rectify_mono_l"
         args="load image_proc/rectify $(arg manager)" >
-    <remap from="camera_info" to="left/camera_info"/>
-    <remap from="image_mono" to="left/image_mono"/>
-    <remap from="image_rect" to="left/image_rect"/>
+    <remap from="camera_info" to="stereo_down/left/camera_info"/>
+    <remap from="image_mono" to="stereo_down/left/image_mono"/>
+    <remap from="image_rect" to="stereo_down/left/image_rect"/>
   </node>
 
   <node pkg="nodelet" type="nodelet" name="rectify_mono_lc"
         args="load image_proc/rectify $(arg manager)" >
-    <remap from="camera_info" to="left/camera_info"/>
-    <remap from="image_mono" to="left/image_color"/>
-    <remap from="image_rect" to="left/image_rect_color"/>
+    <remap from="camera_info" to="stereo_down/left/camera_info"/>
+    <remap from="image_mono" to="stereo_down/left/image_color"/>
+    <remap from="image_rect" to="stereo_down/left/image_rect_color"/>
   </node>
 
+
+  
+  <node pkg="nodelet" type="nodelet" name="crop_mono_r"
+        args="load image_proc/crop_decimate $(arg manager)" >
+    <remap from="camera" to="right"/>
+    <remap from="camera_out" to="stereo_down/right"/>
+    <param name="decimation_x" value="2"/>
+    <param name="decimation_y" value="2"/>
+  </node>
+  
   <node pkg="nodelet" type="nodelet" name="debayer_r"
         args="load image_proc/debayer $(arg manager)" >
-    <remap from="camera_info" to="right/camera_info"/>
-    <remap from="image_color" to="right/image_color"/>
-    <remap from="image_mono" to="right/image_mono"/>
-    <remap from="image_raw" to="right/image_raw"/>
+    <remap from="camera_info" to="stereo_down/right/camera_info"/>
+    <remap from="image_color" to="stereo_down/right/image_color"/>
+    <remap from="image_mono" to="stereo_down/right/image_mono"/>
+    <remap from="image_raw" to="stereo_down/right/image_raw"/>
   </node>
-
+  
   <node pkg="nodelet" type="nodelet" name="rectify_mono_r"
         args="load image_proc/rectify $(arg manager)" >
-    <remap from="camera_info" to="right/camera_info"/>
-    <remap from="image_mono" to="right/image_mono"/>
-    <remap from="image_rect" to="right/image_rect"/>
+    <remap from="camera_info" to="stereo_down/right/camera_info"/>
+    <remap from="image_mono" to="stereo_down/right/image_mono"/>
+    <remap from="image_rect" to="stereo_down/right/image_rect"/>
   </node>
 
   <node pkg="nodelet" type="nodelet" name="rectify_mono_rc"
         args="load image_proc/rectify $(arg manager)" >
-    <remap from="camera_info" to="right/camera_info"/>
-    <remap from="image_mono" to="right/image_color"/>
-    <remap from="image_rect" to="right/image_rect_color"/>
+    <remap from="camera_info" to="stereo_down/right/camera_info"/>
+    <remap from="image_mono" to="stereo_down/right/image_color"/>
+    <remap from="image_rect" to="stereo_down/right/image_rect_color"/>
   </node>
+
+  <node pkg="nodelet" type="nodelet" name="disparity"
+        args="load stereo_image_proc/disparity $(arg manager)">
+    <remap from="left/image_rect"   to="stereo_down/left/image_rect"/>
+    <remap from="left/camera_info"  to="stereo_down/left/camera_info"/>
+    <remap from="right/image_rect"  to="stereo_down/right/image_rect"/>
+    <remap from="right/camera_info" to="stereo_down/right/camera_info"/>
+    <remap from="/zed_camera/disparity" to="/zed_camera/stereo_down/disparity"/>
+  </node>
+  
+  <!-- PointCloud2 -->
+  <node pkg="nodelet" type="nodelet" name="point_cloud2"
+        args="load stereo_image_proc/point_cloud2 $(arg manager)">
+    <remap from="left/image_rect_color" to="stereo_down/left/image_rect_color"/>
+    <remap from="left/camera_info"  to="stereo_down/left/camera_info"/>
+    <remap from="right/camera_info"  to="stereo_down/right/camera_info"/>
+    <remap from="/zed_camera/disparity" to="/zed_camera/stereo_down/disparity"/>
+  </node>
+  
 </launch>
